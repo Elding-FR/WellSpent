@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      viewport-fit=cover : indispensable pour que env(safe-area-inset-*) soit non nul
+      en mode standalone sur iPhone (CDC 6.1).
+
+      maximum-scale + user-scalable : demandés pour supprimer le zoom au doigt. Ce
+      qu'ils font réellement, contexte par contexte :
+
+        - PWA installée sur l'écran d'accueil .... honorés, le zoom est bloqué ;
+        - Android Chrome ........................ honorés ;
+        - Safari en navigation .................. IGNORÉS depuis iOS 10, par
+          accessibilité. Aucun réglage de viewport n'y peut rien.
+
+      Ce réglage ne suffit donc pas à lui seul. La gêne réelle venait de l'auto-zoom
+      au focus, qu'iOS déclenche sur tout champ dont la police descend sous 16 px :
+      elle est traitée dans STYLE_CHAMP (src/ui/composants/base.tsx), et c'est cette
+      correction-là qui agit partout.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2f8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#131120" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="WellSpent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Maitrise du budget personnel" />
+    <link rel="icon" type="image/svg+xml" href="/WellSpent/icons/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/WellSpent/icons/apple-touch-icon-180.png" />
+    <link
+      rel="preload"
+      href="/WellSpent/fonts/Manrope-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <title>WellSpent</title>
+    <!--
+      Le thème est posé AVANT la première peinture.
+
+      React l'appliquait dans un `useEffect`, qui s'exécute après : un utilisateur ayant
+      choisi « sombre » sur un téléphone en mode clair voyait donc une image blanche le
+      temps d'un cadre. Ce script est volontairement inline et sans dépendance — tout ce
+      qui passe par le bundle arrive trop tard.
+
+      La clé est la même que `CLE_THEME` dans src/App.tsx ; un test le vérifie.
+    -->
+    <script>
+      try {
+        var themeChoisi = localStorage.getItem('wellspent.theme')
+        if (themeChoisi === 'clair' || themeChoisi === 'sombre') {
+          document.documentElement.setAttribute('data-theme', themeChoisi)
+        }
+      } catch (erreur) {
+        /* stockage indisponible : le thème système fait l'affaire */
+      }
+    </script>
+    <script type="module" crossorigin src="/WellSpent/assets/index-C-lFy4Hx.js"></script>
+    <link rel="stylesheet" crossorigin href="/WellSpent/assets/index-qkoj2LJA.css">
+  <link rel="manifest" href="/WellSpent/manifest.webmanifest"></head>
+  <body>
+    <!--
+      L'ÉCRAN D'OUVERTURE, écrit en dur — le même que EcranChargement (src/ui/ecrans/
+      Demarrage.tsx), à la lettre ; un test le vérifie.
+
+      Il s'affiche avant que le code ne démarre, et surtout pendant le rechargement d'une
+      mise à jour : on passait par une page vide entre l'ancienne version et la nouvelle.
+      React le remplace par le sien, identique, sans que rien ne bouge.
+    -->
+    <div id="root"><div class="marge-laterale flex min-h-dvh items-center justify-center bg-ground py-10"><div class="w-full max-w-[520px]"><div class="flex flex-col items-center gap-3"><div class="flex items-center gap-3"><svg width="48" height="48" viewBox="0 0 100 100" role="img" aria-label="WellSpent"><rect width="100" height="100" rx="22" fill="var(--hero)"></rect><path d="M17 30L33.5 72L50 46L66.5 72L83 30" fill="none" stroke="#ffffff" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="50" cy="75.5" r="5.2" fill="var(--accent-mint)"></circle></svg><span class="text-[26px] font-extrabold tracking-[-0.03em]">WellSpent</span></div><div aria-hidden="true" class="relative mt-4 h-[3px] w-[140px] overflow-hidden rounded-full bg-hero/15"><span class="trait-ouverture absolute inset-y-0 w-2/5 rounded-full bg-hero"></span></div><p role="status" class="mt-1 text-[12px] leading-[18px] font-semibold text-muted">Chargement de l’application</p></div></div></div></div>
+    <script>
+      /*
+        Le trait se cale sur l'horloge avant la première image, comme dans
+        EcranChargement : il ne repart pas du bord quand React prend le relais, ni quand
+        une mise à jour recharge la page.
+      */
+      try {
+        var trait = document.querySelector('#root .trait-ouverture')
+        if (trait) trait.style.animationDelay = '-' + (Date.now() % 1100) + 'ms'
+      } catch (erreur) {
+        /* sans importance : le trait part du bord */
+      }
+    </script>
+  </body>
+</html>
